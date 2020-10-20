@@ -1,0 +1,463 @@
+#+title: Introduction to Functional Programming with Haskell
+#+author: Jonathan Reeve
+#+email: jonathan.reeve@columbia.edu
+
+This workshop was originally given via [[https://events.columbia.edu/cal/event/showEventMore.rdo][Columbia University's Foundations for Research Computing]] program.
+
+* Why Haskell?
+- Haskell is super fast
+- It's interpreted as well as compiled
+- It's super stable
+- Concurrency is free
+
+* What is functional programming?
+
+Functional programming describes what something *is*, rather than just providing a recipe of instructions for how to assemble it.
+
+** Peanut butter sandwich
+Peanut butter sandwich, imperative:
+
+1. Get a jar of peanut butter
+2. Grab a knife
+3. Use the knife to spread some peanut butter on a piece of bread.
+4. Put another piece of bread on top.
+
+Peanut butter sandwich, functional:
+
+sandwich = bread + spreaded peanutButter + bread where
+  spreaded = withKnife spread
+
+** Summing and multiplying a list
+Consider this Java-like code:
+
+#+BEGIN_SRC javascript
+int acc = 0;
+for ( int i = 0; i < lst.length; i++ ) {
+  acc = acc + 3 * lst[i];
+}
+#+END_SRC
+
+In Haskell, we can just write
+
+#+BEGIN_SRC haskell
+sum (map (3*) lst)
+#+END_SRC
+
+** Quicksort
+
+Consider this QuickSort algorithm from the Standard Template Library in C++:
+
+#+BEGIN_SRC c++
+template <typename T>
+void qsort (T *result, T *list, int n)
+{
+    if (n == 0) return;
+    T *smallerList, *largerList;
+    smallerList = new T[n];
+    largerList = new T[n];
+    T pivot = list[0];
+    int numSmaller=0, numLarger=0;
+    for (int i = 1; i < n; i++)
+        if (list[i] < pivot)
+            smallerList[numSmaller++] = list[i];
+        else
+            largerList[numLarger++] = list[i];
+
+    qsort(smallerList,smallerList,numSmaller);
+    qsort(largerList,largerList,numLarger);
+
+    int pos = 0;
+    for ( int i = 0; i < numSmaller; i++)
+        result[pos++] = smallerList[i];
+
+    result[pos++] = pivot;
+
+    for ( int i = 0; i < numLarger; i++)
+        result[pos++] = largerList[i];
+
+    delete [] smallerList;
+    delete [] largerList;
+};
+#+END_SRC
+
+#+BEGIN_SRC haskell
+qsort :: (Ord a) => [a] -> [a]
+qsort []     = []
+qsort (x:xs) = qsort less ++ [x] ++ qsort more
+    where less = filter (<x)  xs
+        more = filter (>=x) xs
+#+END_SRC
+
+* Some Haskell syntax
+
+Function application uses spaces.
+ - The first word is the function name
+ - Every other word is given to that function as input
+  
+#+BEGIN_SRC haskell
+tip = (*) 0.2
+tip 30
+#+END_SRC
+
+#+RESULTS:
+: 6.0
+
+#+BEGIN_SRC python
+def tip(mealPrice):
+    return mealPrice * 0.2
+print(tip(30))
+#+END_SRC
+
+#+RESULTS:
+: None
+
+Function arguments are named before the ~=~ sign:
+
+#+BEGIN_SRC haskell
+withTip price = price + (tip price)
+withTip 30
+#+END_SRC
+
+#+RESULTS:
+: 36.0
+
+Which is equivalent to this in Python:
+
+#+BEGIN_SRC python :results output
+def withTip(price):
+    return price + (price * 0.2)
+print(withTip(30))
+#+END_SRC
+
+#+RESULTS:
+: 36.0
+
+
+#+BEGIN_SRC haskell
+circleArea r = pi * r ** 2
+circleArea 5
+#+END_SRC
+
+#+RESULTS:
+: 78.53981633974483
+
+There are no ~for~ loops in Haskell.
+
+So how do you iterate over something? Write a function, and ~map~ that function over a list.
+
+#+BEGIN_SRC haskell
+mealPrices = [30, 32, 40, 35]
+map withTip mealPrices
+#+END_SRC
+
+#+RESULTS:
+| 36.0 | 38.4 | 48.0 | 42.0 |
+
+In Python, this would be:
+
+#+BEGIN_SRC python :results output
+mealPrices = [30, 32, 40, 35]
+
+def withTip(mealPrice):
+    return mealPrice + (mealPrice * 0.2)
+
+tipsAdded = []
+for meal in mealPrices:
+    tipsAdded.append(withTip(meal))
+
+tipsAdded = [withTip(meal) for tip in mealPrices]
+
+print(tipsAdded)
+#+END_SRC
+
+#+RESULTS:
+: [36.0, 38.4, 48.0, 42.0]
+
+#+BEGIN_SRC haskell
+zip [1..5] [10..15]
+#+END_SRC
+
+#+RESULTS:
+| 1 | 10 |
+| 2 | 11 |
+| 3 | 12 |
+| 4 | 13 |
+| 5 | 14 |
+
+Add two lists together pairwise:
+
+#+BEGIN_SRC haskell
+zipWith (+) [1..5] [10..15]
+#+END_SRC
+
+#+RESULTS:
+| 11 | 13 | 15 | 17 | 19 |
+
+Infinite lists! (Laziness FTW)
+
+#+BEGIN_SRC haskell
+take 10 [100..]
+#+END_SRC
+
+#+RESULTS:
+| 100 | 101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 |
+
+Thus the Fibonnacci sequence:
+
+#+BEGIN_SRC haskell
+fibonacci = 0 : 1 : zipWith (+) fibonacci (tail fibonacci)
+
+take 20 fibonacci
+#+END_SRC
+
+#+RESULTS:
+: Prelude> [0,1,1,2,3,5,8,13,21,34,55,89,144,233,377,610,987,1597,2584,4181]
+
+* Working with strings:
+
+#+BEGIN_SRC haskell
+hammerTime = "Can't touch this. Da na na na."
+words hammerTime
+#+END_SRC
+
+#+RESULTS:
+| Can't | touch | this. | Da | na | na | na. |
+
+How many words is that? Use function composition.
+
+#+BEGIN_SRC haskell
+(length . words) hammerTime
+#+END_SRC
+
+#+RESULTS:
+: 7
+
+Or map it:
+
+#+BEGIN_SRC haskell
+map length (words hammerTime)
+#+END_SRC
+
+#+RESULTS:
+| 5 | 5 | 5 | 2 | 2 | 2 | 3 |
+
+#+BEGIN_SRC haskell
+:t hammerTime
+#+END_SRC
+
+#+RESULTS:
+: <interactive>:1:1-10: error: Variable not in scope: hammerTime
+
+#+BEGIN_SRC haskell
+:t hammerTime
+#+END_SRC
+
+* Everything is a function
+
+The type signature says: it takes two parameters: a function ~(a -> a)~ and something else ~a~, and returns something ~a~.
+
+#+BEGIN_SRC haskell
+doTwice f x = f (f x)
+
+hammer = (++ " Hammertime!")
+doTwice hammer "Can't touch this."
+#+END_SRC
+
+#+RESULTS:
+: Prelude> Prelude> "Can't touch this. Hammertime! Hammertime!"
+
+* Filter
+
+#+BEGIN_SRC haskell
+isVowel c = elem c "aeiou"
+
+disemvowel = filter (not isVowel)
+disemvowel hammerTime
+#+END_SRC
+
+#+RESULTS:
+: <interactive>:16:1-10: error:
+:     Variable not in scope: disemvowel :: t0 -> t
+:
+: <interactive>:16:12-21: error: Variable not in scope: hammerTime
+
+* Types and type signatures
+
+http://www.happylearnhaskelltutorial.com/1/types_jigsaw.html#s3
+
+#+BEGIN_SRC haskell
+:t isVowel
+#+END_SRC
+
+#+RESULTS:
+: isVowel :: Char -> Bool
+
+#+BEGIN_SRC haskell
+:t disemvowel
+#+END_SRC
+
+#+RESULTS:
+: disemvowel :: [Char] -> [Char]
+
+#+BEGIN_SRC haskell
+:t withTip
+#+END_SRC
+
+#+RESULTS:
+: withTip :: Fractional a => a -> a
+
+#+BEGIN_SRC haskell
+:t doTwice
+#+END_SRC
+
+#+RESULTS:
+: doTwice :: (t -> t) -> t -> t
+
+* IO
+
+Haskell distinguishes between functions which operate on values, and ~actions~ which handle IO.
+
+#+BEGIN_SRC haskell
+main = do
+  putStrLn "Please enter your name:"
+  name <- getLine
+  putStrLn ("Hello, " ++ name ++ ", how are you?")
+
+#+END_SRC
+
+
+#+BEGIN_SRC haskell
+:t putStrLn
+#+END_SRC
+
+#+RESULTS:
+: putStrLn :: String -> IO ()
+
+#+BEGIN_SRC haskell
+:t getLine
+#+END_SRC
+
+#+RESULTS:
+: getLine :: IO String
+
+* Good coding practice, codified
+
+Consider a typical Python function written in production:
+
+#+BEGIN_SRC python
+    def __init__(
+            self,
+            name,
+            metadata=None,
+            same_as=None,
+            **kwargs
+    ):
+        """
+        The init function of the Author class.
+        Parameters
+        ----------
+        name: nameparser.HumanName || str
+            The name of the author as nameparser.HumanName object or a string.
+        metadata: dict
+            A dictionary containing the metadata.
+        kwargs:
+            Any other information.
+        """
+        if isinstance(name, str):
+            name = HumanName(name)
+        if not isinstance(name, HumanName):
+            raise ValueError("Name is not an instance of nameparser.HumanName")
+        self.name = name
+        if metadata is None:
+            metadata = dict()
+        if kwargs is not None:
+            for key, value in kwargs.items():
+                self.metadata[key] = value
+#+END_SRC
+
+This function is good practice, since it's well-documented. It says exactly what the parameters should be coming into the function. And then it checks to make sure that the inputs it's given are instances of those types.
+
+Haskell has this built in to its language. You could just write this:
+
+#+BEGIN_SRC haskell
+init :: String -> Dict -> AuthorObject
+init name metadata = -- do something here
+#+END_SRC
+
+* If Statements
+
+#+BEGIN_SRC haskell
+type Name = String
+
+message :: Name -> Name
+message name = if name == "Dave"
+               then "I can't do that."
+               else "Hello."
+
+main = do
+  putStrLn "Please enter your name:"
+  name <- getLine
+  putStrLn (message name)
+#+END_SRC
+* Make your own types
+
+#+BEGIN_SRC haskell :session newSession
+data GroceryItem = Oats | Milk | Oatmilk | Oranges | OrangeJuice deriving Show
+type Quantity = Int
+data ShoppingList = ShoppingList [(GroceryItem, Quantity)] deriving Show
+
+myShoppingList = ShoppingList [(Oats, 2), (Milk, 1), (Oatmilk, 3), (Oranges, 25)]
+
+countInList :: ShoppingList -> Quantity
+
+main = print myShoppingList
+#+END_SRC
+
+#+RESULTS:
+: Prelude>
+: <interactive>:133:10-23: error:
+:     Variable not in scope: myShoppingList :: String
+* CodeWorld
+
+** A circle with my name in it:
+
+#+BEGIN_SRC haskell
+{-#LANGUAGE OverloadedStrings #-}
+import CodeWorld
+
+nametag = lettering "Jonathan"
+myCircle = circle 5
+redCircle = colored red myCircle
+
+main = drawingOf $ nametag & redCircle
+#+END_SRC
+
+** A recursive tree:
+
+#+BEGIN_SRC haskell
+{-#LANGUAGE OverloadedStrings #-}
+import CodeWorld
+
+main = drawingOf $ tree 10
+
+tree :: Integer -> Picture
+tree 0 = blank
+tree n = polyline [(0,0),(0,1)] & translated 0 1 (
+  rotated (pi/10) (tree (n-1)) & rotated (- pi/10) (tree (n-1)))
+
+#+END_SRC
+
+** A simple interaction:
+
+#+BEGIN_SRC haskell
+{-# LANGUAGE OverloadedStrings #-}
+import CodeWorld
+
+updateRadius event radius =
+       case event of
+         KeyPress "Up"   -> radius + 1
+         KeyPress "Down" -> radius - 1
+         _               -> radius
+
+main = activityOf 1 updateRadius circle
+#+END_SRC
