@@ -2,32 +2,32 @@
 #+author: Jonathan Reeve
 #+email: jonathan.reeve@columbia.edu
 
-This workshop was originally given via [[https://events.columbia.edu/cal/event/showEventMore.rdo][Columbia University's Foundations for Research Computing]] program.
+This workshop was originally given via [[https://events.columbia.edu/cal/event/showEventMore.rdo][Columbia University's Foundations for Research Computing]] program, in a talk called "Introduction to Functional Programming with Haskell."
 
 * Why Haskell?
 - Haskell is super fast
 - It's interpreted as well as compiled
-- It's super stable
-- Concurrency is free
+- It's remarkably stable
+- You get concurrency for free
 
 * What is functional programming?
 
 Functional programming describes what something *is*, rather than just providing a recipe of instructions for how to assemble it.
 
-** Peanut butter sandwich
-Peanut butter sandwich, imperative:
+** Contrived example: a peanut butter sandwich, imperative style
 
 1. Get a jar of peanut butter
 2. Grab a knife
 3. Use the knife to spread some peanut butter on a piece of bread.
 4. Put another piece of bread on top.
 
-Peanut butter sandwich, functional:
+** Contrived example: a peanut butter sandwich, functional style:
 
 sandwich = bread + spreaded peanutButter + bread where
   spreaded = withKnife spread
 
-** Summing and multiplying a list
+** Example: summing and multiplying a list
+
 Consider this Java-like code:
 
 #+BEGIN_SRC javascript
@@ -43,9 +43,9 @@ In Haskell, we can just write
 sum (map (3*) lst)
 #+END_SRC
 
-** Quicksort
+** Example: quicksort
 
-Consider this QuickSort algorithm from the Standard Template Library in C++:
+Consider this quicksort algorithm from the Standard Template Library in C++:
 
 #+BEGIN_SRC c++
 template <typename T>
@@ -79,6 +79,8 @@ void qsort (T *result, T *list, int n)
     delete [] largerList;
 };
 #+END_SRC
+
+In Haskell, we can just write this:
 
 #+BEGIN_SRC haskell
 qsort :: (Ord a) => [a] -> [a]
@@ -132,6 +134,7 @@ print(withTip(30))
 #+RESULTS:
 : 36.0
 
+An example with a parameter:
 
 #+BEGIN_SRC haskell
 circleArea r = pi * r ** 2
@@ -143,6 +146,7 @@ circleArea 5
 
 There are no ~for~ loops in Haskell.
 
+* The map function
 So how do you iterate over something? Write a function, and ~map~ that function over a list.
 
 #+BEGIN_SRC haskell
@@ -246,7 +250,7 @@ map length (words hammerTime)
 #+END_SRC
 
 #+RESULTS:
-: <interactive>:1:1-10: error: Variable not in scope: hammerTime
+: hammerTime :: [Char]
 
 #+BEGIN_SRC haskell
 :t hammerTime
@@ -257,6 +261,7 @@ map length (words hammerTime)
 The type signature says: it takes two parameters: a function ~(a -> a)~ and something else ~a~, and returns something ~a~.
 
 #+BEGIN_SRC haskell
+doTwice :: (a -> a) -> a -> a
 doTwice f x = f (f x)
 
 hammer = (++ " Hammertime!")
@@ -272,14 +277,11 @@ doTwice hammer "Can't touch this."
 isVowel c = elem c "aeiou"
 
 disemvowel = filter (not isVowel)
+
 disemvowel hammerTime
 #+END_SRC
 
 #+RESULTS:
-: <interactive>:16:1-10: error:
-:     Variable not in scope: disemvowel :: t0 -> t
-:
-: <interactive>:16:12-21: error: Variable not in scope: hammerTime
 
 * Types and type signatures
 
@@ -297,7 +299,7 @@ http://www.happylearnhaskelltutorial.com/1/types_jigsaw.html#s3
 #+END_SRC
 
 #+RESULTS:
-: disemvowel :: [Char] -> [Char]
+: <interactive>:1:1-10: error: Variable not in scope: disemvowel
 
 #+BEGIN_SRC haskell
 :t withTip
@@ -401,6 +403,8 @@ main = do
 #+END_SRC
 * Make your own types
 
+Making your own custom data types is a great way of making your program even more semantic, and more stable, since now you can write functions that manipulate only those types, rather than their generic parents (~String~, ~Int~, etc.).
+
 #+BEGIN_SRC haskell :session newSession
 data GroceryItem = Oats | Milk | Oatmilk | Oranges | OrangeJuice deriving Show
 type Quantity = Int
@@ -413,11 +417,11 @@ countInList :: ShoppingList -> Quantity
 main = print myShoppingList
 #+END_SRC
 
-#+RESULTS:
-: Prelude>
-: <interactive>:133:10-23: error:
-:     Variable not in scope: myShoppingList :: String
 * CodeWorld
+
+http://code.world/haskell is a great IDE and toy sandbox for learning Haskell. It comes batteries-included, with all appropriate documentation, and is used heavily in [[https://www.seas.upenn.edu/~cis194/fall16/][the UPenn Haskell course]].
+
+Here are some simple things you can do with code.world. (You can also do these by downloading the Codeworld haskell package, too.)
 
 ** A circle with my name in it:
 
@@ -461,3 +465,12 @@ updateRadius event radius =
 
 main = activityOf 1 updateRadius circle
 #+END_SRC
+
+
+* Resources
+
+There are plenty of ways to learn Haskell out there. Some of my favorites are these:
+
+ - [[http://www.happylearnhaskelltutorial.com/][Happy Learn Haskell Tutorial]], a book which you can read for free online
+ - [[http://learnyouahaskell.com/][Learn You a Haskell for Great Good]], another book which you can read for free online
+ - [[https://exercism.io/][Exercism.io]], a coding practice site where you can do Haskell exercises and get feedback from human mentors.
